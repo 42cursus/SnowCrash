@@ -18,13 +18,11 @@ level05@SnowCrash:~$ pwd
 /home/user/level05
 
 level05@SnowCrash:~$ ll
-total 20
-drwxr-xr--+ 1 level05 level05  140 Oct  6 17:22 ./
+total 12
+dr-xr-x---+ 1 level05 level05  100 Mar  5  2016 ./
 d--x--x--x  1 root    users    340 Aug 30  2015 ../
--rw-------+ 1 level05 level05  509 Oct  6 17:18 .bash_history
 -r-x------  1 level05 level05  220 Apr  3  2012 .bash_logout*
 -r-x------  1 level05 level05 3518 Aug 30  2015 .bashrc*
--rwxrwx--x+ 1 level05 level05   15 Oct  6 17:20 file.sh*
 -r-x------  1 level05 level05  675 Apr  3  2012 .profile*
 ```
 
