@@ -77,9 +77,9 @@ print $r;
 ?>
 ```
 
-Supposedly, `level06` is going to interpret `level06.php`. Also `preg_replace` is a very well known PHP vulnerability when used with `/e`, as it means "execute the command".
+Supposedly, `level06` is going to interpret `level06.php`. The `/e` modifier on `preg_replace` is a well-known PHP vulnerability: it tells PHP to evaluate the replacement string as PHP code rather than treat it as plain text, so whatever is captured by the regex ends up executed. It was deprecated and later removed in PHP 7 precisely because of this.
 
-We'll expoit it.
+Here, the pattern `/(\[x (.*)\])/e` captures anything between `[x ` and `]` and feeds it to `y()`, which itself runs through the same evaluation. We just need to smuggle a PHP expression through `y`'s capture group.
 
 First, we need to create a file that is going to be passed as the first argument and opened by `file_get_contents`.
 

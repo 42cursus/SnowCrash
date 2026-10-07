@@ -22,7 +22,7 @@ d--x--x--x 1 root    users    340 Aug 30  2015 ../
 
 ## Examination of `/etc/passwd`
 
-The `/etc/passwd` file shows something very intersting!
+The `/etc/passwd` file shows something very interesting!
 
 ```sh
 level01@SnowCrash:~$ grep -E "level01|flag01" /etc/passwd
@@ -30,7 +30,7 @@ level01:x:2001:2001::/home/user/level01:/bin/bash
 flag01:42hDRfypTqqnw:3001:3001::/home/flag/flag01:/bin/bash
 ```
 
-Indeed, the `flag01` user line contains the hash of the password: `42hDRfypTqqnw`.
+Indeed, the `flag01` user line contains the hash of the password: `42hDRfypTqqnw`. This is a 13-character string, the signature of the traditional DES `crypt(3)` format: a 2-character salt followed by the 11-character hash. Normally, `/etc/passwd` only stores a placeholder (`x`) and the real hash lives in `/etc/shadow`, out of reach of unprivileged users; here it's exposed directly.
 
 This time, let us use `John the Ripper` and try to obtain the real password!
 

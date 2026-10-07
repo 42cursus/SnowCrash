@@ -78,11 +78,13 @@ Port 5151 is already listening.
 
 # Resolution
 
-Obversed vulnerability.
+Observed vulnerability.
 
 ```lua
 prog = io.popen("echo "..pass.." | sha1sum", "r")
 ```
+
+The received password is concatenated directly into a shell command and executed through `io.popen`, without any sanitization. A password containing a semicolon lets us append any command of our own after the intended `echo`, running as `flag11`.
 
 ```sh
 level11@SnowCrash:~$ nc localhost 5151

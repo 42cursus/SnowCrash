@@ -62,9 +62,9 @@ level08@SnowCrash:~$ ./level08 good_file.txt
 text
 ```
 
-Apparently, `level08` simply opens and print whatever text is in a file...
+Apparently, `level08` simply opens and prints whatever text is in a file...
 
-... as long as it doesn't contain `token` in it.
+... as long as the given path doesn't contain the string `token`.
 
 ```sh
 level08@SnowCrash:~$ ltrace ./level08 link_to_token 
@@ -79,7 +79,9 @@ exit(1 <unfinished ...>
 
 # Resolution
 
-Let us create a link to the file we're interested in.
+The check is a naive string match on the path (`strstr`), not on the file actually opened. A symlink whose own name avoids the substring `token`, but which points to the real `token` file, slips past the check while still resolving to the protected file when opened.
+
+Let us create such a link.
 
 ```sh
 level08@SnowCrash:~$ setfacl -d -m m::rwx,u::rwx .

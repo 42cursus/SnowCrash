@@ -54,9 +54,7 @@ exit(1 <unfinished ...>
 +++ exited (status 1) +++
 ```
 
-It calls `getuid`.
-
-Okay, let us pretend we're 4242 by intercepting the `getuid` call and instead returning the value 4242.
+It calls `getuid` twice and compares the result to 4242 before printing anything useful. Since the binary is setuid `flag13` but checks the *real* UID rather than the effective one, simply running it as `level13` fails the check — but we can still intercept the call with a debugger and force its return value to 4242.
 
 ```sh
 level13@SnowCrash:~$   gdb -nx -q -batch \

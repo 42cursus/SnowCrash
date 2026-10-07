@@ -54,7 +54,7 @@ LOGNAME         # The program contains the string "LOGNAME"
 # ...to be continued
 ```
 
-The program seem to be interested in LOGNAME. Why ?
+The program seems to be interested in the `LOGNAME` environment variable, and in formatting it into a call to `/bin/echo`. Why?
 
 ```sh
 level07@SnowCrash:~$ ltrace -f ./level07 2>&1 | grep getenv
@@ -83,7 +83,7 @@ level07@SnowCrash:~$ LOGNAME='SEE_ME_I_M_BIG' ltrace -f ./level07 2>&1  | grep "
 [pid 2854] fflush(0xb7fd1a20SEE_ME_I_M_BIG
 ```
 
-Interestingly, the program calls `system` on whatever string we pass it as `LOGNAME`.
+Interestingly, the program builds a shell command (`/bin/echo <LOGNAME>`) and runs it through `system()`, without sanitizing it. Since the binary is setuid-setgid `flag07`, controlling `LOGNAME` lets us inject arbitrary shell commands running with `flag07`'s privileges.
 
 Let us try some injection.
 

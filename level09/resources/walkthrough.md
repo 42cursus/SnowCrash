@@ -30,6 +30,7 @@ d--x--x--x 1 root    users    340 Aug 30  2015 ../
 ### File type
 
 ```sh
+level09@SnowCrash:~$ file level09
 level09: setuid setgid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.24, BuildID[sha1]=0x0e1c5a0dfb537112250e1c78d5afec3104abb143, not stripped
 
 level09@SnowCrash:~$ file token 
@@ -61,11 +62,9 @@ puts("You should not reverse this"You should not reverse this
 +++ exited (status 1) +++
 ```
 
-Pretty clear that we should not analyse the binary.
+Pretty clear that we should not analyse the binary, and indeed `ptrace` is used to make debugging fail: the program likely detects a tracer and refuses to run (confirmed by the `-1` return and immediate exit).
 
-# Resolution
-
-The program takes the input string and adds its rank value to each character. We must cancel this in order to decipher.
+Comparing the two behaviors (`00000` → `01234`, i.e. each character shifted by its own position: `0+0=0`, `0+1=1`, `0+2=2`...) shows that the program simply adds the index of each character to its value. We just have to apply the reverse operation to the ciphered `token` file in order to recover the plaintext password.
 
 ```py
 level09@SnowCrash:~$ cat > python.py

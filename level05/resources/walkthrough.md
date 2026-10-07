@@ -80,6 +80,8 @@ level05@SnowCrash:~$ cat /var/spool/mail/$USER
 
 # Resolution
 
+The cron entry runs every script found in `/opt/openarenaserver/` as `flag05`, then deletes it. We just need to drop a script there before it gets picked up. Since the script runs as `flag05` but outside of any terminal we control, we can't simply read its stdout: `wall` broadcasts a message to every open terminal, which lets us recover the flag regardless.
+
 ```sh
 level05@SnowCrash:~$ cat > openarena_exploit.sh
 getflag | wall

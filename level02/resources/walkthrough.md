@@ -37,7 +37,7 @@ A PCAP (Packet Capture) file is the industry-standard file format used to store 
 
 # Resolution
 
-Let us transfer the file on the host machine, in order to open with with a proper software.
+Let us transfer the file to the host machine, in order to open it with proper software.
 
 First, let us make it readable by anyone.
 
@@ -55,6 +55,8 @@ sh-5.3$ scp -P 4242 level02@localhost:/home/user/level02/file_we_own.pcap .
 ```
 
 Finally, let us open it with `Wireshark` in order to read the TCP data transfer.
+
+The capture is a Telnet session. The leading bytes (`ff fd`, `ff fb`, `ff fa`...) are Telnet protocol negotiation (option requests between client and server); they can be ignored, and the interesting part starts once the actual terminal session is readable.
 
 ## Data transferred by the server
 
@@ -141,7 +143,7 @@ We can clearly see that the server asked for a login and the password.
 000000CD  0d                                                 .
 ```
 
-It seems that the client started by typing something related to the level, then proceeded on typing its password. Thankfully, the data stream wasn't encrypted!
+It seems that the client started by typing the username, then its password. Telnet transmits everything in cleartext, so the credentials are fully visible.
 
 Having in mind that the character 0x7f is `DEL`, we can reconstitute the client's input:
 

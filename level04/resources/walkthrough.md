@@ -64,7 +64,7 @@ The following line looks like some harm could be done via command injection.
   print `echo $y 2>&1`;
 ```
 
-Somehow, we should try and pass the script the `getflag` command.
+The backticks run the interpolated string through the shell, and `$y` is the unsanitized `x` parameter. Since the script runs setuid-setgid as `flag04`, any shell metacharacter (`;`, `|`, `` ` ``) we smuggle into `x` will execute with `flag04`'s privileges. Let us try passing the script a payload that chains the `getflag` command after the `echo`.
 
 ```sh
 level04@SnowCrash:~$ telnet 127.1 4747

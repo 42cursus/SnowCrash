@@ -71,14 +71,11 @@ LISTEN     0      32                                                            
 
 # Resolution
 
-The code transforms every input into upper case character.
+The `x` parameter is uppercased and everything after the first whitespace is stripped before being interpolated into the `egrep` command, which defeats a direct, readable shell injection: any letters in our payload get forced to uppercase first.
 
-Then, `egrep` injection will fail.
+But `$xx` still ends up inside backticks, handed to the shell as `egrep "^$xx" /tmp/xd`, and the shell resolves any `$(...)` command substitution it contains *before* `egrep` even runs. A payload like `$(/*/ls)` survives the `tr` test, except its lowercase letters get uppercased too, turning it into `$(/*/LS)`. The glob `/*/LS` will match any top-level directory containing a file literally named `LS` — so by dropping our own executable file named `/tmp/LS` beforehand, we make the shell execute it in place of `ls`.
 
-The idea is to redirect the program to a file we made, containing the command to be injected.
-
-
-How to understand the code:
+The following command helps visualize how the input is processed before reaching `egrep`:
 
 ```pl
 perl -e '$xx="\$(/*/ls)"; $xx =~ tr/a-z/A-Z/; $xx =~ s/\s.*//; $out =`echo "^$xx"`; print $out . "\n"'

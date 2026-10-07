@@ -52,13 +52,13 @@ cdiiddwpgswtgt
 cdiiddwpgswtgt
 ```
 
-Those seemingly gibberish values alongside with the name of the files (`john`) give a great hint: they could be crypted. Indeed, `John the Ripper` is a famous password cracking tool.
+Those seemingly gibberish values, alongside with the name of the file (`john`), give a great hint: they could be ciphered. Indeed, `John the Ripper` is a famous password cracking tool, which suggests the value is worth cracking rather than decoding with it directly.
 
 # Resolution
 
-With the use of an online analysis tool such as [Boxentriq](https://www.boxentriq.com/), we are confident enough that we're facing one of the most ancient and simple ciphering technique, called [Caesar Cipher](https://en.wikipedia.org/wiki/Caesar_cipher).
+With the use of an online analysis tool such as [Boxentriq](https://www.boxentriq.com/), we are confident enough that we're facing one of the most ancient and simple ciphering techniques, called the [Caesar Cipher](https://en.wikipedia.org/wiki/Caesar_cipher). Since the alphabet only allows 26 possible shifts, it can be brute-forced trivially.
 
-Let us execute a small caesar deciphering tool:
+Let us write a small Caesar deciphering tool and try every shift:
 
 ```py
 import sys
