@@ -75,26 +75,28 @@ puts("You should not reverse this"You should not reverse this
 +++ exited (status 1) +++
 ```
 
+`getflag` calls `ptrace(PTRACE_TRACEME, ...)` on itself. A process can only be traced once: if it is already under `ltrace`, `strace` or `gdb`, that call fails (returns `-1`), and the binary treats this as proof it is being reverse-engineered and bails out with the warning message. This rules out the usual debugger-based approach used on previous levels.
+
 We are not expected to exploit `getflag`. At least not by looking at its code.
 
 
 # Resolution
 
-In order not to trigger its anti-trace protection mechanism, what if we could pretend we are who the program expects us to be? In this case, the `flag14` user.
+`getflag` almost certainly checks the real UID of the calling process, the same pattern seen on earlier levels, and exits if it doesn't match `flag14`'s UID. Since we cannot attach a debugger to patch that check in memory, we need another way to actually *be* `flag14`, or at least to make the kernel believe we are.
 
-Linux`s kernel provides this very mechanism through the `namespaces`.
+Linux's kernel provides exactly this mechanism through `user namespaces`: a process can ask to be remapped to an arbitrary UID inside its own namespace, and calls like `getuid()` made from within that namespace return the remapped value.
 
-Unfortunately, the provided iso is old and its version (Ubuntu 3.2.0) didn't fully support yet the full `namespace` feature. The `user namespaces` were still experimental and reserved to the `root` user.
+Unfortunately, the provided ISO is old and its kernel (Linux 3.2.0) only had partial support for this feature. Unprivileged `user namespaces` are a later addition; on this system, creating one still required the `root` user.
 
 Two solutions:
-- Become root
-- Benefit from the fact we come from the future and `scp` the getflag function onto our host machine.
+- Become root, and freely assume any identity.
+- Benefit from the fact we come from the future, and `scp` the `getflag` binary onto our own, more recent host machine, whose kernel does support unprivileged user namespaces.
 
-Let us do both
+Let us do both.
 
 ## Become `root`
 
-One major Linux kernel vulnerabitly that permitted to easily become `root` was discovered at the end of 2016. It affected the kernel version from 2.6.22 to 4.4.26. This exploit was called `Dirty COW` and exploited the ernel `copy-on-write` mechanism.
+One major Linux kernel vulnerability that allowed any local user to easily become `root` was disclosed at the end of 2016. It was nicknamed `Dirty COW` (`CVE-2016-5195`) and affected kernel versions from `2.6.22` up to `4.4.26`. It exploits a race condition in the kernel's handling of private read-only memory mappings during `copy-on-write`: by racing a `madvise(MADV_DONTNEED)` call against a write to the mapping through `/proc/self/mem`, an attacker can make the kernel write to the underlying page cache of a file they only have read access to, such as `/etc/passwd`.
 
 Our kernel version can be exploited. Good!
 
@@ -158,7 +160,7 @@ level14@localhost's password:
 getflag                                                                                                                                         100%   12KB   1.3MB/s   00:00 
 ```
 
-One issue though, is that our modern host doesn't share the same libraries as this good old `getflag`.
+One issue though, is that our modern host doesn't share the same libraries as this good old, 32-bit `getflag`.
 
 ```sh
 sh: ./getflag: cannot execute: required file not found
@@ -167,7 +169,7 @@ sh-5.3$ file getflag
 getflag: ELF 32-bit LSB executable, Intel i386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.24, BuildID[sha1]=41bcce3fb6d2326e75eac775228132855df1f0ca, not stripped
 ```
 
-We miss the `/lib/ld-linux.so.2` interpreter. Let us steal it!
+`ld-linux.so.2` is the dynamic linker: the program that the kernel itself invokes first to load `getflag`'s actual shared library dependencies before execution even begins, as recorded in the `interpreter` field above. Our host lacks the matching 32-bit, old-glibc version of it. Let us steal it!
 
 On the virtual machine:
 ```sh
@@ -188,7 +190,7 @@ sh-5.3$ ./ld-2.15.so getflag
 getflag: error while loading shared libraries: getflag: cannot open shared object file: No such file or directory
 ```
 
-Grmbl!
+Grmbl! The loader itself runs, but it now needs to resolve `getflag`'s other dependency, `libc.so.6`, and our host's own `libc` is not ABI-compatible with this old 32-bit binary.
 
 Let's go further and create the full environment.
 
@@ -210,14 +212,11 @@ scp -P 4242 \
   level00@127.1:/lib/i386-linux-gnu/libc-2.15.so \
   /tmp/snowcrash-runtime/
 ln -s libc-2.15.so /tmp/snowcrash-runtime/libc.so.6
-
-unshare --map-user=3014 \
-  /tmp/snowcrash-runtime/ld-2.15.so \
-  --library-path /tmp/snowcrash-runtime \
-  /tmp/snowcrash-getflag
 ```
 
-Then let us create the `namespace` as 3014.
+We now have a self-contained runtime: the exact loader and `libc` `getflag` was built against, fetched straight from the VM rather than guessed at. Invoking the loader directly and pointing it at this private `--library-path` sidesteps the host's own, incompatible dynamic linker entirely.
+
+All that remains is the UID check. This is where the unprivileged `user namespace` comes in: `unshare --map-user=3014` creates a new user namespace in which our current, unprivileged user is remapped to UID `3014`, i.e. `flag14`'s UID. Our modern host kernel allows this without any special privilege, unlike the VM's kernel. Inside that namespace, `getflag`'s call to `getuid()` returns `3014`, the check passes, and the binary happily hands us the flag, even though we never actually held `flag14`'s credentials on the VM itself.
 
 ```sh
 unshare --map-user=3014 \
