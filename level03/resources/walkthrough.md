@@ -86,7 +86,7 @@ system("/usr/bin/env echo Exploit me"Exploit me
 +++ exited (status 0) +++
 ```
 
-Interesting! At some point, the program calls `system()` to run `/usr/bin/env echo Exploit me`. Since `env` resolves `echo` by searching the `PATH`, and the binary is setuid root, we can hijack that lookup: if we put our own executable named `echo` earlier in the `PATH`, it will run with root privileges instead of the real `echo`.
+Interesting! At some point, the program calls `system()` to run `/usr/bin/env echo Exploit me`. Since `env` resolves `echo` by searching the `PATH`, we can hijack that lookup: if we put our own executable named `echo` earlier in the `PATH`, it will run in its place, with whatever privileges the `level03` binary (setuid `flag03`) carries at that point.
 
 Let us create our own `echo`.
 

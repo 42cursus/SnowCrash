@@ -11,7 +11,7 @@ level08@SnowCrash:~$ ll -la /bin/getflag
 
 # Content of home
 
-The folder contains `level08` and `token.
+The folder contains `level08` and `token`.
 
 ```sh
 level08@SnowCrash:~$ pwd
@@ -81,7 +81,7 @@ exit(1 <unfinished ...>
 
 The check is a naive string match on the path (`strstr`), not on the file actually opened. A symlink whose own name avoids the substring `token`, but which points to the real `token` file, slips past the check while still resolving to the protected file when opened.
 
-Let us create such a link.
+Let us create such a link. `strstr` is also case-sensitive, so mixing the case of the forbidden substring, as in `ToKeN` below, is enough by itself to dodge the check, regardless of what surrounds it.
 
 ```sh
 level08@SnowCrash:~$ setfacl -d -m m::rwx,u::rwx .
